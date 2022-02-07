@@ -1,91 +1,88 @@
 var db = require('../services/config/db');
-const tableUsers = 'users';
+const tableCourses = 'courses';
 
 exports.post = async (req, res) => {
     try {
-        const user = req.body;
+        const course = req.body;
 
-        if(!user)
-            res.status(400).send('Usuário inválido');
+        if(!course)
+            res.status(400).send('Curso inválido');
         
-        if(!user.first_name)
-            res.status(400).send('Usuário com "primeiro nome" inválido');
+        if(!course.title)
+            res.status(400).send('Curso com "título" inválido');
         
-        if(!user.last_name)
-            res.status(400).send('Usuário com "último nome" inválido');
+        if(!course.description)
+            res.status(400).send('Curso com "descrição" inválida');
 
-        if(!user.email)
-            res.status(400).send('Usuário com "email" inválido');
-
-        const data = await db.insert(user).into(tableUsers);
+        const data = await db.insert(course).into(tableCourses)
 
         res.status(201).send({
             id: data[0],
-            ...user
+            ...course
         });
     } catch (error) {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
             'message-dev': error
-        });
+        })
     }
 };
 
 exports.put = async (req, res, next) => {
     try {
         const id = req.params.id;
-        const user = req.body;
+        const course = req.body;
 
-        const data = await db(tableUsers).where({ id: id }).update(user);
+        const data = await db(tableCourses).where({ id: id }).update(course);
         
-        const userUpdated = await db.select().table(tableUsers).where('id', data);
+        const courseUpdated = await db.select().table(tableCourses).where('id', data);
 
-        res.status(200).send(userUpdated[0]);
+        res.status(200).send(courseUpdated[0]);
     } catch (error) {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
             'message-dev': error
-        });
+        })
     }
 };
 
 exports.delete = async (req, res, next) => {
     try {
         const id = req.params.id;
-        const data = await db(tableUsers).where('id', id).del();
+        const data = await db(tableCourses).where('id', id).del();
 
-        res.status(200).send(`Usuário deletado com sucesso!`);
+        res.status(200).send(`Curso deletado com sucesso!`);
     } catch (error) {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
             'message-dev': error
-        });
+        })
     }
 }
 
 exports.get = async (req, res, next) => {
     try {
-        const data = await db.select().table(tableUsers);
+        const data = await db.select().table(tableCourses);
         
         res.status(200).send(data);
     } catch (error) {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
             'message-dev': error
-        });
+        })
     }
 }
 
 exports.getById = async (req, res, next) => {
     try {
         const id = req.params.id;
-        const data = await db.select().table(tableUsers).where('id', id);
+        const data = await db.select().table(tableCourses).where('id', id);
 
         res.status(200).send(data[0]);
     } catch (error) {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
             'message-dev': error
-        });
+        })
     }
 }
