@@ -81,7 +81,7 @@ exports.getById = async (req, res, next) => {
         const id = req.params.id;
         const data = await db.select().table(tableUsers).where('id', id);
 
-        res.status(200).send(data);
+        res.status(200).send(data[0]);
     } catch (error) {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
