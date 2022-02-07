@@ -17,7 +17,7 @@ exports.post = async (req, res) => {
         if(!user.email)
             res.status(400).send('Usuário com "email" inválido');
 
-        const data = await db.insert(user).into(tableUsers)
+        const data = await db.insert(user).into(tableUsers);
 
         res.status(201).send({
             id: data[0],
@@ -27,7 +27,7 @@ exports.post = async (req, res) => {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
             'message-dev': error
-        })
+        });
     }
 };
 
@@ -36,7 +36,7 @@ exports.put = async (req, res, next) => {
         const id = req.params.id;
         const user = req.body;
 
-        const data = await db(tableUsers).where({ id: id }).update(user)
+        const data = await db(tableUsers).where({ id: id }).update(user);
         
         const userUpdated = await db.select().table(tableUsers).where('id', data);
 
@@ -45,7 +45,7 @@ exports.put = async (req, res, next) => {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
             'message-dev': error
-        })
+        });
     }
 };
 
@@ -59,7 +59,7 @@ exports.delete = async (req, res, next) => {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
             'message-dev': error
-        })
+        });
     }
 }
 
@@ -72,7 +72,7 @@ exports.get = async (req, res, next) => {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
             'message-dev': error
-        })
+        });
     }
 }
 
@@ -86,6 +86,6 @@ exports.getById = async (req, res, next) => {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
             'message-dev': error
-        })
+        });
     }
 }
