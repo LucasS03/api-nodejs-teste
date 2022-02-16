@@ -93,7 +93,7 @@ exports.login = async (req, res, next) => {
     
     const token = jwt.sign(
         { user: loggedUser.id },
-        "chave_secreta",
+        process.env.SECRET_KEY,
         { expiresIn: 300 }
     );
 
