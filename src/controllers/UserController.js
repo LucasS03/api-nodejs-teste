@@ -74,8 +74,30 @@ exports.receiveNewPassword = async (req, res) => {
     }
 }
 
-exports.login = (req, res) => {
-    res.status(200).send('ok');
+exports.login = async (req, res, next) => {
+    const { email, password } = req.body;
+
+    if(!email || !password)
+        return res.status(400).send({ msg: 'Campos inválidos' });
+
+    const user = await db(tableUsers).select('password').where('email', email).first();
+
+    if(!user)
+        return res.status(404).send({ error: 'Usuário não encontrado! '});
+
+    if(!(await bcrypt.compareSync(password, user.password)))
+        return res.status(401).send({ error: 'Senha inválida' });
+
+    const loggedUser = await db(tableUsers).select('*').where('email', email).first();
+    delete loggedUser.password;
+    
+    const token = jwt.sign(
+        { user: loggedUser.id },
+        "chave_secreta",
+        { expiresIn: 300 }
+    );
+
+    return res.status(200).send({ user: { ...loggedUser }, token });
 }
 
 exports.post = async (req, res) => {
