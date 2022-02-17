@@ -7,4 +7,5 @@ module.exports = (app) => {
 
     app.get('/courses', CourseController.get);
     app.get('/course/:id', CourseController.getById);
+    app.get('/course/:id/classes', CourseController.getClassesByCourseId);
 };

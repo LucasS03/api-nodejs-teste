@@ -1,5 +1,6 @@
 var db = require('../services/config/db');
 const tableCourses = 'courses';
+const tableClasses = 'classes';
 
 exports.post = async (req, res) => {
     try {
@@ -79,6 +80,24 @@ exports.getById = async (req, res, next) => {
         const data = await db.select().table(tableCourses).where('id', id);
 
         res.status(200).send(data[0]);
+    } catch (error) {
+        res.status(500).send({ 
+            'message': 'Erro interno no servidor',
+            'message-dev': error
+        })
+    }
+}
+
+exports.getClassesByCourseId = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        if(!id)
+            res.status(400).send({ 'message': 'id do curso não informado' })
+
+        const data = await db(tableClasses).select().where('courseId', id);
+
+        res.status(200).send(data);
     } catch (error) {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',
