@@ -93,11 +93,16 @@ exports.getClassesByCourseId = async (req, res, next) => {
         const { id } = req.params;
 
         if(!id)
-            res.status(400).send({ 'message': 'id do curso não informado' })
+            res.status(400).send({ 'message': 'id do curso não informado' });
 
         const data = await db(tableClasses).select().where('courseId', id);
 
-        res.status(200).send(data);
+        if(!data.length)
+            res.status(400).send({ 'message': 'Curso não existe ou não há aulas para este curso' });
+        
+        const sortedData = data.sort((a, b) => (a.number >= b.number ? 1 : -1));
+
+        res.status(200).send(sortedData);
     } catch (error) {
         res.status(500).send({ 
             'message': 'Erro interno no servidor',

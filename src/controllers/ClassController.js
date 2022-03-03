@@ -18,6 +18,9 @@ exports.post = async (req, res) => {
         if(!classData.courseId)
             res.status(400).send('Aula sem vínculo à um curso');
 
+        if(!classData.number)
+            res.status(400).send('Aula com "número" inválido');
+
         const data = await db.insert(classData).into(tableClasses);
 
         res.status(201).send({
