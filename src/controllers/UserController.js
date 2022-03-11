@@ -158,9 +158,8 @@ exports.put = async (req, res, next) => {
         const user = req.body;
 
         const data = await db(tableUsers).where({ id: id }).update(user);
+        const userUpdated = await db.select().table(tableUsers).where('id', id);
         
-        const userUpdated = await db.select().table(tableUsers).where('id', data);
-
         res.status(200).send(userUpdated[0]);
     } catch (error) {
         res.status(500).send({ 
