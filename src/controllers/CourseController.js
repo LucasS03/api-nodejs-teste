@@ -1,6 +1,8 @@
 var db = require('../services/config/db');
 const tableCourses = 'courses';
 const tableClasses = 'classes';
+const tableProgress = 'progress';
+const tableCourseStatus = 'course_status';
 
 exports.post = async (req, res) => {
     try {
@@ -114,7 +116,7 @@ exports.getClassesByCourseId = async (req, res, next) => {
 exports.checkProgress = async (req, res) => {
     const { courseId, userId } = req.params;
 
-    db('progress').where({ courseId, userId }).first().then((data) => {
+    db(tableProgress).where({ courseId, userId }).first().then((data) => {
         if(!data)
             return res.status(200).send({ lastSeen: 0 });
 
@@ -126,15 +128,61 @@ exports.updateProgress = async (req, res) => {
     const { courseId, userId } = req.params;
     const { body } = req;
 
-    const data = await db('progress').where({ courseId, userId }).first();
+    const data = await db(tableProgress).where({ courseId, userId }).first();
 
     if(!data) {
-        await db('progress').insert({
+        await db(tableProgress).insert({
             courseId, userId, lastSeen: body.lastSeen, id: `${userId}-${courseId}`
         })
     } else {
-        await db('progress').where({ courseId, userId }).first().update({ lastSeen: body.lastSeen });
+        await db(tableProgress).where({ courseId, userId }).first().update({ lastSeen: body.lastSeen });
     }
 
     return res.status(200).send('progress updated');
 }
+
+exports.addToCourse = async (req, res) => {
+    const { courseId, userId } = req.params;
+    const data = await db(tableCourseStatus).where({ courseId, userId }).first();
+
+    if(!data) {
+        await db(tableCourseStatus).insert({
+            courseId, userId, status: 1
+        });
+    } else {
+        await db(tableCourseStatus).where({ courseId, userId }).first().update({ status: 1 });
+    }
+
+    return res.status(200).send('user added to course');
+
+}
+
+exports.setCompleted = async (req, res) => {
+    const { courseId, userId } = req.params;
+    const { body } = req;
+    const data = await db(tableCourseStatus).where({ courseId, userId }).first();
+
+    if(!data) {
+        return res.status(400).json({ error: 'O usuário não está cadastrado neste curso!'});
+    }
+
+    await db(tableCourseStatus).where({ courseId, userId }).first().update({ completeDate: body.completeDate, status: 2 });
+    return res.status(200).send('Curso finalizado!');
+}
+
+exports.checkStatus = (req, res) => {
+    const { courseId, userId } = req.params;
+    const status = [
+        { code: 0, status: 'Não Cadastrado' },
+        { code: 1, status: 'Cursando' },
+        { code: 2, status: 'Concluído' }
+    ];
+
+    db(tableCourseStatus).where({ courseId, userId }).first().then((data) => {
+        if(!data) {
+            return res.status(200).send(status[0]);
+        }
+
+        return res.status(200).send(status[data.status]);
+    })
+} 

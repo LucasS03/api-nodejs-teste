@@ -11,4 +11,8 @@ module.exports = (app) => {
 
     app.get('/courses/:courseId/progress/:userId', CourseController.checkProgress);
     app.post('/courses/:courseId/progress/:userId', CourseController.updateProgress);
+
+    app.get('/courses/:courseId/status/:userId', CourseController.checkStatus);
+    app.post('/courses/:courseId/status/:userId', CourseController.addToCourse);
+    app.put('/courses/:courseId/status/:userId', CourseController.setCompleted);
 };
