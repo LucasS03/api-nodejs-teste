@@ -110,3 +110,31 @@ exports.getClassesByCourseId = async (req, res, next) => {
         })
     }
 }
+
+exports.checkProgress = async (req, res) => {
+    const { courseId, userId } = req.params;
+
+    db('progress').where({ courseId, userId }).first().then((data) => {
+        if(!data)
+            return res.status(200).send({ lastSeen: 0 });
+
+        return res.status(200).send({ lastSeen: data.lastSeen || 0 });
+    })
+}
+
+exports.updateProgress = async (req, res) => {
+    const { courseId, userId } = req.params;
+    const { body } = req;
+
+    const data = await db('progress').where({ courseId, userId }).first();
+
+    if(!data) {
+        await db('progress').insert({
+            courseId, userId, lastSeen: body.lastSeen, id: `${userId}-${courseId}`
+        })
+    } else {
+        await db('progress').where({ courseId, userId }).first().update({ lastSeen: body.lastSeen });
+    }
+
+    return res.status(200).send('progress updated');
+}
