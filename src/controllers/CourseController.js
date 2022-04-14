@@ -1,8 +1,11 @@
+const pdf = require('html-pdf');
 var db = require('../services/config/db');
+
 const tableCourses = 'courses';
 const tableClasses = 'classes';
 const tableProgress = 'progress';
 const tableCourseStatus = 'course_status';
+const tableUsers = 'users';
 
 exports.post = async (req, res) => {
     try {
@@ -186,3 +189,31 @@ exports.checkStatus = (req, res) => {
         return res.status(200).send(status[data.status]);
     })
 } 
+
+exports.generatePDF = async (req, res) => {
+    const { courseId, userId } = req.params;
+    const course = await db.select().table(tableCourses).where({ id: courseId }).first();
+    const user = await db.select().table(tableUsers).where({ id: userId }).first();
+
+    const html = `
+    <div style="position: absolute;height: 50%;width: 100%;top: 25%;right: 0;">
+        <h4 style="font-size: 28px;text-align: center;">Hitss On</h4>
+        <h1 style="font-size: 48px;text-align: center;">Certificado</h1>
+        <h2 style="font-size: 32px;text-align: center;">${user.first_name} ${user.last_name}</h2>
+        <h3 style="font-size: 28px;text-align: center;"><b>Concluíu o curso ${course.title}<b></h3>
+    </div>`;
+
+    const options = {
+        type: 'pdf',
+        format: 'A4',
+        orientation: 'landscape'
+    };
+
+    pdf.create(html, options).toBuffer((err, buffer) => {
+        if(err) {
+            return res.status(500).json(err);
+        }
+
+        return res.end(buffer);
+    })
+}

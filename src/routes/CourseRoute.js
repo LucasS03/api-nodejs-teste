@@ -15,4 +15,6 @@ module.exports = (app) => {
     app.get('/courses/:courseId/status/:userId', CourseController.checkStatus);
     app.post('/courses/:courseId/status/:userId', CourseController.addToCourse);
     app.put('/courses/:courseId/status/:userId', CourseController.setCompleted);
+
+    app.get('/courses/:courseId/certificate/:userId', CourseController.generatePDF);
 };
