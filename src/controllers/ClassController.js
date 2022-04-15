@@ -1,5 +1,6 @@
 const db = require('../services/config/db');
 const fs = require('fs');
+const aws = require('aws-sdk');
 const tableClasses = 'classes';
 
 exports.post = async (req, res) => {
@@ -112,14 +113,36 @@ exports.videoUpload = async (req, res) => {
 
     // TODO: excluir vídeo antigo, antes de adicionar o novo
 
-    await db(tableClasses).where('id', id).first().update({ video: req.file.path });
+    // await db(tableClasses).where('id', id).first().update({ video: req.file.path || req.file.key });
 
     res.send('Salvo!');
 }
 
 exports.getVideoByClassId = async (req, res) => {
-    const { id } = req.params;
+    const { id } = req.params; // courseId, lessonNumber
     const movieFile = await db(tableClasses).where('id', id).first();
+
+    if(!movieFile || !movieFile.video) {
+        return res.status(404).end('<h1>Vídeo não encontrado :(</h1>');
+    }
+
+    if(process.env.STORAGE_TYPE === 's3') {
+        const s3 = new aws.S3();
+
+        aws.config.update({
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+        });
+
+        const url = s3.getSignedUrl('getObject', {
+            Bucket: process.env.BUCKET_NAME,
+            Key: movieFile.video,
+            Expires: 3600*3
+        });
+
+        console.log(url);
+        return res.status(200).send(url);
+    }
 
     fs.stat(movieFile.video, (err, stats) => {
         if(err) {
@@ -146,7 +169,9 @@ exports.getVideoByClassId = async (req, res) => {
         stream.on('error', (streamErr) => res.end(streamErr));
 
         return null;
-    })
+    });
+    
+    return null;
 }
 
 const hasClass = async (id = '') => {

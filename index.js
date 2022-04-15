@@ -6,7 +6,7 @@ const config = require('./config');
 
 app.use(cors());
 app.use(express.json());
-app.listen(config.PORT, config.HOST, () => {
+app.listen(config.PORT, () => {
     console.log(`APP LISTENING ON http://${config.HOST}:${config.PORT}`);
 });
 
