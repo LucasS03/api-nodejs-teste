@@ -1,6 +1,11 @@
+const pdf = require('html-pdf');
 var db = require('../services/config/db');
+
 const tableCourses = 'courses';
 const tableClasses = 'classes';
+const tableProgress = 'progress';
+const tableCourseStatus = 'course_status';
+const tableUsers = 'users';
 
 exports.post = async (req, res) => {
     try {
@@ -109,4 +114,106 @@ exports.getClassesByCourseId = async (req, res, next) => {
             'message-dev': error
         })
     }
+}
+
+exports.checkProgress = async (req, res) => {
+    const { courseId, userId } = req.params;
+
+    db(tableProgress).where({ courseId, userId }).first().then((data) => {
+        if(!data)
+            return res.status(200).send({ lastSeen: 0 });
+
+        return res.status(200).send({ lastSeen: data.lastSeen || 0 });
+    })
+}
+
+exports.updateProgress = async (req, res) => {
+    const { courseId, userId } = req.params;
+    const { body } = req;
+
+    const data = await db(tableProgress).where({ courseId, userId }).first();
+
+    if(!data) {
+        await db(tableProgress).insert({
+            courseId, userId, lastSeen: body.lastSeen, id: `${userId}-${courseId}`
+        })
+    } else {
+        await db(tableProgress).where({ courseId, userId }).first().update({ lastSeen: body.lastSeen });
+    }
+
+    return res.status(200).send('progress updated');
+}
+
+exports.addToCourse = async (req, res) => {
+    const { courseId, userId } = req.params;
+    const data = await db(tableCourseStatus).where({ courseId, userId }).first();
+
+    if(!data) {
+        await db(tableCourseStatus).insert({
+            courseId, userId, status: 1
+        });
+    } else {
+        await db(tableCourseStatus).where({ courseId, userId }).first().update({ status: 1 });
+    }
+
+    return res.status(200).send('user added to course');
+
+}
+
+exports.setCompleted = async (req, res) => {
+    const { courseId, userId } = req.params;
+    const { body } = req;
+    const data = await db(tableCourseStatus).where({ courseId, userId }).first();
+
+    if(!data) {
+        return res.status(400).json({ error: 'O usuário não está cadastrado neste curso!'});
+    }
+
+    await db(tableCourseStatus).where({ courseId, userId }).first().update({ completeDate: body.completeDate, status: 2 });
+    return res.status(200).send('Curso finalizado!');
+}
+
+exports.checkStatus = (req, res) => {
+    const { courseId, userId } = req.params;
+    const status = [
+        { code: 0, status: 'Não Cadastrado' },
+        { code: 1, status: 'Cursando' },
+        { code: 2, status: 'Concluído' }
+    ];
+
+    db(tableCourseStatus).where({ courseId, userId }).first().then((data) => {
+        if(!data) {
+            return res.status(200).send(status[0]);
+        }
+
+        return res.status(200).send(status[data.status]);
+    })
+} 
+
+exports.generatePDF = async (req, res) => {
+    const { courseId, userId } = req.params;
+    const course = await db.select().table(tableCourses).where({ id: courseId }).first();
+    const user = await db.select().table(tableUsers).where({ id: userId }).first();
+
+    const html = `
+    <div style="position: absolute;height: 50%;width: 100%;top: 25%;right: 0;">
+        <h4 style="font-size: 28px;text-align: center;">Hitss On</h4>
+        <h1 style="font-size: 48px;text-align: center;">Certificado</h1>
+        <h2 style="font-size: 32px;text-align: center;">${user.first_name} ${user.last_name}</h2>
+        <h3 style="font-size: 28px;text-align: center;"><b>Concluíu o curso ${course.title}<b></h3>
+    </div>`;
+
+    const options = {
+        type: 'pdf',
+        format: 'A4',
+        orientation: 'landscape'
+    };
+
+    pdf.create(html, options).toBuffer((err, buffer) => {
+        if(err) {
+            return res.status(500).json(err);
+        }
+
+        return res.end(buffer);
+    })
 }

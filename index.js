@@ -2,10 +2,12 @@ const express = require('express');
 const cors = require('cors');
 var app = express();
 
-require('dotenv-safe').config();
+const config = require('./config');
 
 app.use(cors());
 app.use(express.json());
-app.listen(3333);
+app.listen(config.PORT, config.HOST, () => {
+    console.log(`APP LISTENING ON http://${config.HOST}:${config.PORT}`);
+});
 
 require('./src/routes/index')(app);
