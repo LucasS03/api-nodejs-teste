@@ -107,14 +107,11 @@ exports.getById = async (req, res, next) => {
 
 exports.videoUpload = async (req, res) => {
     const { id } = req.params;
-    console.log("Funcionou");
 
     if(!hasClass(id))
         res.status(404).send('Aula não encontrada');
 
-    // TODO: excluir vídeo antigo, antes de adicionar o novo
-
-    // await db(tableClasses).where('id', id).first().update({ video: req.file.path || req.file.key });
+    await db(tableClasses).where('id', id).first().update({ video: req.file.path || req.file.key });
 
     res.send('Salvo!');
 }
