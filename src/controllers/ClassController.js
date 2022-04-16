@@ -107,6 +107,7 @@ exports.getById = async (req, res, next) => {
 
 exports.videoUpload = async (req, res) => {
     const { id } = req.params;
+    console.log("Salvo 1");
 
     if(!hasClass(id))
         res.status(404).send('Aula não encontrada');
@@ -170,7 +171,7 @@ exports.getVideoByClassId = async (req, res) => {
 
         return null;
     });
-    
+
     return null;
 }
 
