@@ -41,7 +41,7 @@ exports.put = async (req, res, next) => {
 
         const data = await db(tableCourses).where({ id: id }).update(course);
         
-        const courseUpdated = await db.select().table(tableCourses).where('id', data);
+        const courseUpdated = await db.select().table(tableCourses).where('id', id);
 
         res.status(200).send(courseUpdated[0]);
     } catch (error) {
